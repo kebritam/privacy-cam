@@ -18,9 +18,15 @@
     <ClCompile Include="ImageGrabber.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ImageGrabberVideo.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ImageGrabber.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ImageGrabberVideo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

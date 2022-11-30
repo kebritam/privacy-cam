@@ -2,7 +2,6 @@
 #define PRIVACYCAM_IMAGE_GRABBER_H
 
 #include <PreProcessors.h>
-#include <string>
 
 namespace cv
 {
@@ -14,15 +13,14 @@ namespace pricam
 	class ImageGrabber
 	{
 	public:
-		DllExport virtual cv::Mat GetNewFrame() = 0;
-	};
+		ImageGrabber(const ImageGrabber& _other) = delete;
+		ImageGrabber(ImageGrabber&& _other) noexcept = delete;
+		ImageGrabber& operator=(const ImageGrabber& _other) = delete;
+		ImageGrabber& operator=(ImageGrabber&& _other) noexcept = delete;
 
-	class ImageGrabberVideo : public ImageGrabber
-	{
-		std::string m_videoFilePath;
-	public:
-		DllExport ImageGrabberVideo(const std::string& _videoPath);
-		DllExport cv::Mat GetNewFrame() override;
+		DllExport ImageGrabber();
+		DllExport virtual ~ImageGrabber() = 0;
+		DllExport virtual cv::Mat GetNewFrame() = 0;
 	};
 }
 

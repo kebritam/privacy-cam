@@ -147,9 +147,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="ImageGrabber.cpp" />
+    <ClCompile Include="ImageGrabberVideo.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ImageGrabber.h" />
+    <ClInclude Include="ImageGrabberVideo.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

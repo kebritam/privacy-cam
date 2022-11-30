@@ -14,7 +14,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "PrivacyCam", "src\PrivacyCa
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Setting", "src\Setting\Setting.vcxproj", "{64E387D8-90B4-4788-AF7B-E9DDEE725875}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Utility", "Utility\Utility.vcxproj", "{8A8D38EA-5457-455C-A1AF-B77F0D534A07}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Utility", "src\Utility\Utility.vcxproj", "{8A8D38EA-5457-455C-A1AF-B77F0D534A07}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

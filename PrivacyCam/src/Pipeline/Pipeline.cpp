@@ -1,14 +1,18 @@
 #include "Pipeline.h"
 
+#include <opencv2/opencv.hpp> // TODO: do not expose opencv to pipeline
+
 #include <Utility/ThreadPool.h>
+
+#include <Pipeline/PipelineElement.h>
 #include <ImageGrabber/ImageGrabber.h>
 #include <Setting/Setting.h>
 
 using namespace pricam;
 
 Pipeline::Pipeline(const Setting& _setting) :
-	m_isPipelineStopped(true),
-	m_threadPool(std::make_unique<ThreadPool>(4))
+	m_threadPool(std::make_unique<ThreadPool>(4)),
+	m_isPipelineStopped(true)
 {
 	if (StreamType::VIDEO == _setting.Stream)
 		m_imageGrabber = std::make_unique<ImageGrabberVideo>(_setting.Video.InputVideoLocation);
@@ -21,87 +25,92 @@ Pipeline::~Pipeline() = default;
 void Pipeline::Run()
 {
 	m_isPipelineStopped = false;
+	std::vector<std::unique_ptr<PipelineElement>> pipelineElements;
 	while (false == m_isPipelineStopped)
 	{
-		std::future<std::shared_ptr<PipelineElement>> grabFrameFuture = m_threadPool->Push(
-			[this](int) { 
-				return grabFrame(); 
+		std::future<std::unique_ptr<PipelineElement>> generateNewElementFuture = m_threadPool->Push(
+			[this](int) {
+				return generateEmptyElement();
 			}
 		);
-		std::future<std::shared_ptr<PipelineElement>> detectFacesFuture = m_threadPool->Push(
-			[this](int) {
-				return detectFaces(std::make_shared<PipelineElement>()); // TODO: this
+		std::future<std::unique_ptr<PipelineElement>> grabFrameFuture = m_threadPool->Push(
+			[this, &pipelineElements](int) { 
+				return grabFrame(std::move(pipelineElements[0]));
 			}
 		);
-		std::future<std::shared_ptr<PipelineElement>> detectPlatesFuture = m_threadPool->Push(
-			[this](int) {
-				return detectPlates(std::make_shared<PipelineElement>()); // TODO: this
+		std::future<std::unique_ptr<PipelineElement>> detectFacesFuture = m_threadPool->Push(
+			[this, &pipelineElements](int) {
+				return detectFaces(std::move(pipelineElements[1]));
 			}
 		);
-		std::future<std::shared_ptr<PipelineElement>> blurFuture = m_threadPool->Push(
-			[this](int) {
-				return blur(std::make_shared<PipelineElement>()); // TODO: this
+		std::future<std::unique_ptr<PipelineElement>> detectPlatesFuture = m_threadPool->Push(
+			[this, &pipelineElements](int) {
+				return detectPlates(std::move(pipelineElements[2]));
+			}
+		);
+		std::future<std::unique_ptr<PipelineElement>> blurFuture = m_threadPool->Push(
+			[this, &pipelineElements](int) {
+				return blur(std::move(pipelineElements[3]));
+			}
+		);
+		std::future<std::unique_ptr<PipelineElement>> saveFuture = m_threadPool->Push(
+			[this, &pipelineElements](int) {
+				return saveFrame(std::move(pipelineElements[4]));
 			}
 		);
 
-		auto grabRes = grabFrameFuture.get();
-		auto detecFacetRes = detectFacesFuture.get();
-		auto detecPlatetRes = detectPlatesFuture.get();
-		auto blurRes = blurFuture.get();
+		pipelineElements.push_back(generateNewElementFuture.get());
+		pipelineElements.push_back(grabFrameFuture.get());
+		pipelineElements.push_back(detectFacesFuture.get());
+		pipelineElements.push_back(detectPlatesFuture.get());
+		pipelineElements.push_back(blurFuture.get());
+		pipelineElements.push_back(saveFuture.get());
 
-		processPipes();
+		processPipes(pipelineElements);
+
+		pipelineElements.clear();
 	}
 }
 
-PipelineElement::PipelineElement(const cv::Mat& _frame) :
-	PipelineElement(_frame, std::vector<cv::Rect>())
+std::unique_ptr<PipelineElement> Pipeline::generateEmptyElement()
 {
+	return { };
 }
 
-PipelineElement::PipelineElement(const cv::Mat& _frame, const std::vector<cv::Rect>& _rects) :
-	m_frame(std::make_unique<cv::Mat>(_frame)),
-	m_rects(_rects)
+std::unique_ptr<PipelineElement> Pipeline::grabFrame(std::unique_ptr<PipelineElement>&& _pipelineElement) const
 {
+	_pipelineElement->FillFrame(m_imageGrabber->GetNewFrame());
+	return _pipelineElement;
 }
 
-std::shared_ptr<PipelineElement> Pipeline::grabFrame()
+std::unique_ptr<PipelineElement> Pipeline::detectFaces(std::unique_ptr<PipelineElement>&& _pipelineElement)
 {
-	return std::make_shared<PipelineElement>(m_imageGrabber->GetNewFrame());
-}
-
-std::shared_ptr<PipelineElement> detectFaces(const std::shared_ptr<PipelineElement>& _pipelineElement)
-{
+	if (_pipelineElement->GetFrame().empty())
+		return _pipelineElement;
 	// TODO: here
 }
 
-std::shared_ptr<PipelineElement> detectPlates(const std::shared_ptr<PipelineElement>& _pipelineElement)
+std::unique_ptr<PipelineElement> Pipeline::detectPlates(std::unique_ptr<PipelineElement>&& _pipelineElement)
 {
+	if (_pipelineElement->GetFrame().empty())
+		return _pipelineElement;
 	// TODO: here
 }
-std::shared_ptr<PipelineElement> blur(const std::shared_ptr<PipelineElement>& _pipelineElement)
+std::unique_ptr<PipelineElement> Pipeline::blur(std::unique_ptr<PipelineElement>&& _pipelineElement)
 {
+	if (_pipelineElement->NoDetection())
+		return _pipelineElement;
+
 	// TODO: here
 }
-std::shared_ptr<PipelineElement> saveFrame(const std::shared_ptr<PipelineElement>& _pipelineElement)
+std::unique_ptr<PipelineElement> Pipeline::saveFrame(std::unique_ptr<PipelineElement>&& _pipelineElement)
 {
+	if (_pipelineElement->GetFrame().empty())
+		return _pipelineElement;
 	// TODO: here
 }
 
-void processPipes()
+void Pipeline::processPipes(const std::vector<std::unique_ptr<PipelineElement>>& _elements)
 {
 	// TODO: here
-}
-
-cv::Mat PipelineElement::GetFrame()
-{
-	return m_frame->clone();
-}
-
-cv::Rect PipelineElement::GetRect(int idx)
-{
-	if (idx >= m_rects.size())
-		throw std::runtime_error(
-			"there are " + std::to_string(m_rects.size()) +
-			" rects and the caller asked for index " + std::to_string(idx));
-	return m_rects.at(idx);
 }

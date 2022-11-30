@@ -9,7 +9,7 @@ int main()
 {
 	try
 	{
-		pricam::Setting config;
+		const pricam::Setting config;
 		pricam::Pipeline pipeline(config);
 		pipeline.Run();
 	}
