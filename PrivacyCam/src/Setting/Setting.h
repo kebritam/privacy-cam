@@ -32,7 +32,7 @@ namespace pricam
 		int ThreadPoolSize;
 
 		DllExport Setting();
-		DllExport Setting(const std::string& _settingFilePath);
+		DllExport explicit Setting(const std::string& _settingFilePath);
 	};
 }
 

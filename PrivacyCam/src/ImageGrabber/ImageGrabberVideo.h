@@ -15,12 +15,18 @@ namespace cv
 
 namespace pricam
 {
-	class ImageGrabberVideo final : public ImageGrabber
+	class ImageGrabberVideo : public ImageGrabber
 	{
 		std::string m_videoFilePath;
 		std::unique_ptr<cv::VideoCapture> m_videoCapture;
 	public:
+		ImageGrabberVideo(const ImageGrabberVideo& _other) = delete;
+		ImageGrabberVideo(ImageGrabberVideo&& _other) noexcept = delete;
+		ImageGrabberVideo& operator=(const ImageGrabberVideo& _other) = delete;
+		ImageGrabberVideo& operator=(ImageGrabberVideo&& _other) noexcept = delete;
+
 		DllExport explicit ImageGrabberVideo(const std::string& _videoPath);
+		DllExport ~ImageGrabberVideo() override;
 		DllExport cv::Mat GetNewFrame() override;
 	};
 }

@@ -26,6 +26,8 @@ namespace pricam
 		[[nodiscard]] cv::Mat GetFrame() const;
 		cv::Rect GetRect(size_t _idx);
 		[[nodiscard]] bool NoDetection() const;
+
+		[[nodiscard]] bool IsEmpty() const;
 	};
 }
 

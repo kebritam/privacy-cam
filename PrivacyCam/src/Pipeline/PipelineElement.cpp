@@ -46,3 +46,8 @@ bool PipelineElement::NoDetection() const
 {
 	return m_rects.empty();
 }
+
+bool PipelineElement::IsEmpty() const
+{
+	return m_rects.empty() && m_frame->empty();
+}

@@ -3,7 +3,7 @@
 #include <fstream>
 #include <filesystem>
 
-#include <nlohmann/json.hpp>
+#include "nlohmann/json.hpp"
 
 using namespace pricam;
 using json = nlohmann::json;

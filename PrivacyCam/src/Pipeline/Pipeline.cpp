@@ -1,12 +1,13 @@
 #include "Pipeline.h"
 
-#include <opencv2/opencv.hpp> // TODO: do not expose opencv to pipeline
+#include "opencv2/opencv.hpp" // TODO: do not expose opencv to pipeline
 
-#include <Utility/ThreadPool.h>
+#include "Utility/ThreadPool.h"
 
-#include <Pipeline/PipelineElement.h>
-#include <ImageGrabber/ImageGrabber.h>
-#include <Setting/Setting.h>
+#include "Pipeline/PipelineElement.h"
+#include "ImageGrabber/ImageGrabber.h"
+#include "ImageGrabber/ImageGrabberVideo.h"
+#include "Setting/Setting.h"
 
 using namespace pricam;
 
@@ -25,56 +26,61 @@ Pipeline::~Pipeline() = default;
 void Pipeline::Run()
 {
 	m_isPipelineStopped = false;
-	std::vector<std::unique_ptr<PipelineElement>> pipelineElements;
+
+	std::unique_ptr<PipelineElement> pipelineElement1 = std::make_unique<PipelineElement>();
+	std::unique_ptr<PipelineElement> pipelineElement2 = std::make_unique<PipelineElement>();
+	std::unique_ptr<PipelineElement> pipelineElement3 = std::make_unique<PipelineElement>();
+	std::unique_ptr<PipelineElement> pipelineElement4 = std::make_unique<PipelineElement>();
+	std::unique_ptr<PipelineElement> pipelineElement5 = std::make_unique<PipelineElement>();
+
 	while (false == m_isPipelineStopped)
 	{
-		std::future<std::unique_ptr<PipelineElement>> generateNewElementFuture = m_threadPool->Push(
-			[this](int) {
-				return generateEmptyElement();
-			}
-		);
 		std::future<std::unique_ptr<PipelineElement>> grabFrameFuture = m_threadPool->Push(
-			[this, &pipelineElements](int) { 
-				return grabFrame(std::move(pipelineElements[0]));
+			[this, &pipelineElement1](int)
+			{
+				return grabFrame(std::move(pipelineElement1));
 			}
 		);
 		std::future<std::unique_ptr<PipelineElement>> detectFacesFuture = m_threadPool->Push(
-			[this, &pipelineElements](int) {
-				return detectFaces(std::move(pipelineElements[1]));
+			[this, &pipelineElement2](int)
+			{
+				return detectFaces(std::move(pipelineElement2));
 			}
 		);
 		std::future<std::unique_ptr<PipelineElement>> detectPlatesFuture = m_threadPool->Push(
-			[this, &pipelineElements](int) {
-				return detectPlates(std::move(pipelineElements[2]));
+			[this, &pipelineElement3](int)
+			{
+				return detectPlates(std::move(pipelineElement3));
 			}
 		);
 		std::future<std::unique_ptr<PipelineElement>> blurFuture = m_threadPool->Push(
-			[this, &pipelineElements](int) {
-				return blur(std::move(pipelineElements[3]));
+			[this, &pipelineElement4](int)
+			{
+				return blur(std::move(pipelineElement4));
 			}
 		);
 		std::future<std::unique_ptr<PipelineElement>> saveFuture = m_threadPool->Push(
-			[this, &pipelineElements](int) {
-				return saveFrame(std::move(pipelineElements[4]));
+			[this, &pipelineElement5](int)
+			{
+				return saveFrame(std::move(pipelineElement5));
 			}
 		);
 
-		pipelineElements.push_back(generateNewElementFuture.get());
-		pipelineElements.push_back(grabFrameFuture.get());
-		pipelineElements.push_back(detectFacesFuture.get());
-		pipelineElements.push_back(detectPlatesFuture.get());
-		pipelineElements.push_back(blurFuture.get());
-		pipelineElements.push_back(saveFuture.get());
+		auto tempPipeElement = saveFuture.get();
+		pipelineElement5 = blurFuture.get();
+		pipelineElement4 = detectPlatesFuture.get();
+		pipelineElement3 = detectFacesFuture.get();
+		pipelineElement2 = grabFrameFuture.get();
 
-		processPipes(pipelineElements);
+		// std::vector<std::unique_ptr<PipelineElement>> elemnts;
+		// elemnts.push_back(grabFrameFuture.get());
+		// elemnts.push_back(detectFacesFuture.get());
+		// elemnts.push_back(detectPlatesFuture.get());
+		// elemnts.push_back(blurFuture.get());
+		// elemnts.push_back(saveFuture.get());
+		// processPipes(elemnts);
 
-		pipelineElements.clear();
 	}
-}
-
-std::unique_ptr<PipelineElement> Pipeline::generateEmptyElement()
-{
-	return { };
 }
 
 std::unique_ptr<PipelineElement> Pipeline::grabFrame(std::unique_ptr<PipelineElement>&& _pipelineElement) const
@@ -85,32 +91,35 @@ std::unique_ptr<PipelineElement> Pipeline::grabFrame(std::unique_ptr<PipelineEle
 
 std::unique_ptr<PipelineElement> Pipeline::detectFaces(std::unique_ptr<PipelineElement>&& _pipelineElement)
 {
-	if (_pipelineElement->GetFrame().empty())
+	if (_pipelineElement->IsEmpty())
 		return _pipelineElement;
 	// TODO: here
 }
 
 std::unique_ptr<PipelineElement> Pipeline::detectPlates(std::unique_ptr<PipelineElement>&& _pipelineElement)
 {
-	if (_pipelineElement->GetFrame().empty())
+	if (_pipelineElement->IsEmpty())
 		return _pipelineElement;
 	// TODO: here
 }
 std::unique_ptr<PipelineElement> Pipeline::blur(std::unique_ptr<PipelineElement>&& _pipelineElement)
 {
-	if (_pipelineElement->NoDetection())
+	if (_pipelineElement->IsEmpty())
 		return _pipelineElement;
 
 	// TODO: here
 }
 std::unique_ptr<PipelineElement> Pipeline::saveFrame(std::unique_ptr<PipelineElement>&& _pipelineElement)
 {
-	if (_pipelineElement->GetFrame().empty())
+	if (_pipelineElement->IsEmpty())
 		return _pipelineElement;
 	// TODO: here
 }
 
-void Pipeline::processPipes(const std::vector<std::unique_ptr<PipelineElement>>& _elements)
+void Pipeline::processPipes(std::vector<std::unique_ptr<PipelineElement>> _elements)
 {
-	// TODO: here
+	for (size_t i=0 ; i<_elements.size()-1 ; i++)
+	{
+		*(_elements.end() - i) = std::move(*(_elements.end() - (i + 1)));
+	}
 }
