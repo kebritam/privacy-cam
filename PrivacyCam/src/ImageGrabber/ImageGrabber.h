@@ -19,7 +19,7 @@ namespace pricam
 		ImageGrabber& operator=(ImageGrabber&& _other) noexcept = delete;
 
 		DllExport ImageGrabber();
-		DllExport virtual ~ImageGrabber();
+		DllExport virtual ~ImageGrabber() = 0;
 		DllExport virtual cv::Mat GetNewFrame() = 0;
 	};
 }
