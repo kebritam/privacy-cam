@@ -10,8 +10,18 @@ namespace cv
 
 namespace pricam
 {
+	enum class GrabState
+	{
+		NONE,
+		NOT_STARTED,
+		ONGOING,
+		ENDED,
+	};
+
 	class ImageGrabber
 	{
+	protected:
+		GrabState m_grabState;
 	public:
 		ImageGrabber(const ImageGrabber& _other) = delete;
 		ImageGrabber(ImageGrabber&& _other) noexcept = delete;
@@ -20,7 +30,12 @@ namespace pricam
 
 		DllExport ImageGrabber();
 		DllExport virtual ~ImageGrabber() = 0;
+
 		DllExport virtual cv::Mat GetNewFrame() = 0;
+		DllExport virtual void SaveFrame(const cv::Mat& _saveImage) = 0;
+
+		DllExport GrabState GetGrabState() const;
+		DllExport void SetGrabState(GrabState _grabState);
 	};
 }
 
