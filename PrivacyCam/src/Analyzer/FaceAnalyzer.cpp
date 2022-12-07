@@ -13,6 +13,19 @@ FaceAnalyzer::FaceAnalyzer() :
 {
 }
 
+Rect FaceAnalyzer::normalizeRect(const Rect&& _rect, const int _frameWidth, const int _frameHeight) const
+{
+	int x = _rect.X() < 0 ? 0 : _rect.X();
+	int y = _rect.Y() < 0 ? 0 : _rect.Y();
+	int w = _rect.W() < 0 ? 0 : _rect.W();
+	int h = _rect.H() < 0 ? 0 : _rect.H();
+
+	w = _rect.X() + w > _frameWidth ? _frameWidth - _rect.X() : w;
+	h = _rect.Y() + h > _frameHeight ? _frameHeight - _rect.Y() : h;
+
+	return {x, y, w, h};
+}
+
 std::vector<Rect> FaceAnalyzer::FindRects(const cv::Mat& _frame) const
 {
 	const std::unique_ptr<unsigned char> detectBuffer = std::unique_ptr<unsigned char>(new unsigned char[m_detectBufferSize]);
@@ -23,7 +36,7 @@ std::vector<Rect> FaceAnalyzer::FindRects(const cv::Mat& _frame) const
 	for (int i = 0; i < *resultCount; i++)
 	{
 		const short* p = ((short*)(resultCount + 1)) + 142 * i;
-		rects.emplace_back(Rect(p[1], p[2], p[3], p[4]));
+		rects.emplace_back(normalizeRect(Rect(p[1], p[2], p[3], p[4]), _frame.cols, _frame.rows));
 	}
 	return rects;
 }
