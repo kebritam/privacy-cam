@@ -1,2 +1,2 @@
 #define DllExport __declspec(dllexport)
-#define PathSeparator "\\"
+#define PathSeparator '\\'
