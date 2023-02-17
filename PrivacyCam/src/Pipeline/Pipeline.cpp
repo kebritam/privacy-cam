@@ -95,7 +95,7 @@ void Pipeline::Run()
 	}
 }
 
-std::unique_ptr<PipelineElement> Pipeline::grabFrame(std::unique_ptr<PipelineElement>&& _pipelineElement) const
+std::unique_ptr<PipelineElement> Pipeline::grabFrame(std::unique_ptr<PipelineElement> _pipelineElement) const
 {
 	try
 	{
@@ -113,7 +113,7 @@ std::unique_ptr<PipelineElement> Pipeline::grabFrame(std::unique_ptr<PipelineEle
 	return _pipelineElement;
 }
 
-std::unique_ptr<PipelineElement> Pipeline::detectFaces(std::unique_ptr<PipelineElement>&& _pipelineElement) const
+std::unique_ptr<PipelineElement> Pipeline::detectFaces(std::unique_ptr<PipelineElement> _pipelineElement) const
 {
 	try
 	{
@@ -130,14 +130,14 @@ std::unique_ptr<PipelineElement> Pipeline::detectFaces(std::unique_ptr<PipelineE
 	return _pipelineElement;
 }
 
-std::unique_ptr<PipelineElement> Pipeline::detectPlates(std::unique_ptr<PipelineElement>&& _pipelineElement)
+std::unique_ptr<PipelineElement> Pipeline::detectPlates(std::unique_ptr<PipelineElement> _pipelineElement)
 {
 	if (_pipelineElement->IsEmpty())
 		return _pipelineElement;
 	return _pipelineElement;
 	// TODO: here
 }
-std::unique_ptr<PipelineElement> Pipeline::blur(std::unique_ptr<PipelineElement>&& _pipelineElement) const
+std::unique_ptr<PipelineElement> Pipeline::blur(std::unique_ptr<PipelineElement> _pipelineElement) const
 {
 	try
 	{
@@ -152,7 +152,7 @@ std::unique_ptr<PipelineElement> Pipeline::blur(std::unique_ptr<PipelineElement>
 
 	return _pipelineElement;
 }
-std::unique_ptr<PipelineElement> Pipeline::saveFrame(std::unique_ptr<PipelineElement>&& _pipelineElement) const
+std::unique_ptr<PipelineElement> Pipeline::saveFrame(std::unique_ptr<PipelineElement> _pipelineElement) const
 {
 	try
 	{
