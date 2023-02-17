@@ -14,7 +14,7 @@
 using namespace pricam;
 
 Pipeline::Pipeline(const Setting& _setting) :
-	m_threadPool(std::make_unique<ThreadPool>(_setting.ThreadPoolSize)),
+	m_threadPool(std::make_unique<BS::thread_pool>(_setting.ThreadPoolSize)),
 	m_faceAnalyzer(std::make_unique<FaceAnalyzer>()),
 	m_isPipelineStopped(true)
 {
@@ -38,38 +38,38 @@ void Pipeline::Run()
 
 	while (false == m_isPipelineStopped)
 	{
-		std::future<std::unique_ptr<PipelineElement>> generateEmptyElementFuture = m_threadPool->Push(
-			[](int)
+		std::future<std::unique_ptr<PipelineElement>> generateEmptyElementFuture = m_threadPool->submit(
+			[]()
 			{
 				return std::make_unique<PipelineElement>();
 			}
 		);
-		std::future<std::unique_ptr<PipelineElement>> grabFrameFuture = m_threadPool->Push(
-			[this, &grabElement](int)
+		std::future<std::unique_ptr<PipelineElement>> grabFrameFuture = m_threadPool->submit(
+			[this, &grabElement]()
 			{
 				return grabFrame(std::move(grabElement));
 			}
 		);
-		std::future<std::unique_ptr<PipelineElement>> detectFacesFuture = m_threadPool->Push(
-			[this, &detectFaceElement](int)
+		std::future<std::unique_ptr<PipelineElement>> detectFacesFuture = m_threadPool->submit(
+			[this, &detectFaceElement]()
 			{
 				return detectFaces(std::move(detectFaceElement));
 			}
 		);
-		std::future<std::unique_ptr<PipelineElement>> detectPlatesFuture = m_threadPool->Push(
-			[this, &detectPlateElement](int)
+		std::future<std::unique_ptr<PipelineElement>> detectPlatesFuture = m_threadPool->submit(
+			[this, &detectPlateElement]()
 			{
 				return detectPlates(std::move(detectPlateElement));
 			}
 		);
-		std::future<std::unique_ptr<PipelineElement>> blurFuture = m_threadPool->Push(
-			[this, &blurElement](int)
+		std::future<std::unique_ptr<PipelineElement>> blurFuture = m_threadPool->submit(
+			[this, &blurElement]()
 			{
 				return blur(std::move(blurElement));
 			}
 		);
-		std::future<std::unique_ptr<PipelineElement>> saveFuture = m_threadPool->Push(
-			[this, &saveElement](int)
+		std::future<std::unique_ptr<PipelineElement>> saveFuture = m_threadPool->submit(
+			[this, &saveElement]()
 			{
 				return saveFrame(std::move(saveElement));
 			}

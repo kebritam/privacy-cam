@@ -5,17 +5,21 @@
 #include <memory>
 #include <vector>
 
+namespace BS
+{
+	class thread_pool;
+}
+
 namespace pricam
 {
 	class FaceAnalyzer;
 	class PipelineElement;
-	class ThreadPool;
 	class ImageGrabber;
 	struct Setting;
 
 	class Pipeline
 	{
-		std::unique_ptr<ThreadPool> m_threadPool;
+		std::unique_ptr<BS::thread_pool> m_threadPool;
 		std::unique_ptr<ImageGrabber> m_imageGrabber;
 		std::unique_ptr<FaceAnalyzer> m_faceAnalyzer;
 		bool m_isPipelineStopped;
