@@ -6,7 +6,7 @@
 #include <memory>
 #include <spdlog/logger.h>
 
-namespace behkhan
+namespace pricam
 {
 	enum class LogType
 	{
@@ -47,6 +47,7 @@ namespace behkhan
 	class Logger
 	{
 		std::shared_ptr<spdlog::logger> m_logger;
+		void initLogging();
 	public:
 		Logger(const Logger& _other) = delete;
 		Logger(Logger&& _other) noexcept = delete;
@@ -57,8 +58,6 @@ namespace behkhan
 		DllExport ~Logger();
 
 		DllExport static Logger& GetInstance();
-
-		DllExport void InitLogging();
 
 		template<typename... Args>
 		DllExport void Log(const char* _fileName, const char* _functionName, const int _line, const std::string& _msg, const LogType _logType, const Args &... _args)

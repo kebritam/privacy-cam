@@ -8,9 +8,12 @@
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/sinks/rotating_file_sink.h>
 
-using namespace behkhan;
+using namespace pricam;
 
-Logger::Logger() = default;
+Logger::Logger()
+{
+	initLogging();
+}
 
 Logger::~Logger() = default;
 
@@ -20,12 +23,12 @@ Logger& Logger::GetInstance()
 	return logger;
 }
 
-void Logger::InitLogging()
+void Logger::initLogging()
 {
 	//default values
 	const std::string logFilesDirectory = "./Logs";
-	const std::string level = "ERROR";
-	const std::string display = "true";
+	const std::string level = "INFO";
+	const std::string display = "false";
 
 	auto maxSize = 1048576 * 100;
 	auto maxFiles = 10;
@@ -34,7 +37,7 @@ void Logger::InitLogging()
 	spdlog::init_thread_pool(8192, 1);
 	if (display == "true")
 	{
-		const auto stdoutSink = std::make_shared<spdlog::sinks::stdout_color_sink_mt >();
+		const auto stdoutSink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
 		sinks.push_back(stdoutSink);
 	}
 
@@ -54,10 +57,6 @@ void Logger::InitLogging()
 	{
 		m_logger->set_level(spdlog::level::warn);
 	}
-	else if (level == "FATAL")
-	{
-		m_logger->set_level(spdlog::level::critical);
-	}
 	else
 	{
 		m_logger->set_level(spdlog::level::err);
@@ -66,6 +65,6 @@ void Logger::InitLogging()
 	m_logger->flush_on(spdlog::level::err);
 	register_logger(m_logger);
 
-	std::cout << "m_logger started.. \nSee LogConfig.yml to change the course of log process. " << std::endl;
-	m_logger->info("m_logger started.. \nSee LogConfig.yml to change the course of log process. ");
+	std::cout << "Logger started..." << std::endl;
+	m_logger->info("Logger started...");
 }

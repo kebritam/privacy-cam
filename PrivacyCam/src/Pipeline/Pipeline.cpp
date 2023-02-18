@@ -10,13 +10,16 @@
 #include "ImageGrabber/ImageGrabberVideo.h"
 #include "Setting/Setting.h"
 #include "Utility/ImageUtility.h"
+#include "Utility/Logger.h"
+#include "Utility/Timer.h"
 
 using namespace pricam;
 
 Pipeline::Pipeline(const Setting& _setting) :
 	m_threadPool(std::make_unique<BS::thread_pool>(_setting.ThreadPoolSize)),
 	m_faceAnalyzer(std::make_unique<FaceAnalyzer>()),
-	m_isPipelineStopped(true)
+	m_isPipelineStopped(true),
+	m_pipeDuration(0), m_grabFrameDuration(0), m_detectFacesDuration(0), m_detectPlatesDuration(0), m_blurDuration(0), m_saveFrameDuration(0)
 {
 	if (StreamType::VIDEO == _setting.Stream)
 		m_imageGrabber = std::make_unique<ImageGrabberVideo>(_setting.Video);
@@ -35,9 +38,10 @@ void Pipeline::Run()
 	std::unique_ptr<PipelineElement> detectPlateElement = std::make_unique<PipelineElement>();
 	std::unique_ptr<PipelineElement> blurElement = std::make_unique<PipelineElement>();
 	std::unique_ptr<PipelineElement> saveElement = std::make_unique<PipelineElement>();
-
+	
 	while (false == m_isPipelineStopped)
 	{
+		Timer pipeTimer(&m_pipeDuration);
 		std::future<std::unique_ptr<PipelineElement>> generateEmptyElementFuture = m_threadPool->submit(
 			[]()
 			{
@@ -82,21 +86,15 @@ void Pipeline::Run()
 		detectFaceElement = grabFrameFuture.get();
 		grabElement = generateEmptyElementFuture.get();
 
+		pipeTimer.EndTimer();
+		processPipes();
 		optForFinishing();
-		
-		// std::vector<std::unique_ptr<PipelineElement>> elemnts;
-		// elemnts.push_back(grabFrameFuture.get());
-		// elemnts.push_back(detectFacesFuture.get());
-		// elemnts.push_back(detectPlatesFuture.get());
-		// elemnts.push_back(blurFuture.get());
-		// elemnts.push_back(saveFuture.get());
-		// processPipes(elemnts);
-
 	}
 }
 
-std::unique_ptr<PipelineElement> Pipeline::grabFrame(std::unique_ptr<PipelineElement> _pipelineElement) const
+std::unique_ptr<PipelineElement> Pipeline::grabFrame(std::unique_ptr<PipelineElement> _pipelineElement)
 {
+	Timer timer(&m_grabFrameDuration);
 	try
 	{
 		const cv::Mat frame = m_imageGrabber->GetNewFrame();
@@ -109,12 +107,12 @@ std::unique_ptr<PipelineElement> Pipeline::grabFrame(std::unique_ptr<PipelineEle
 	{
 		std::cout << e.what() << std::endl;
 	}
-
 	return _pipelineElement;
 }
 
-std::unique_ptr<PipelineElement> Pipeline::detectFaces(std::unique_ptr<PipelineElement> _pipelineElement) const
+std::unique_ptr<PipelineElement> Pipeline::detectFaces(std::unique_ptr<PipelineElement> _pipelineElement)
 {
+	Timer timer(&m_detectFacesDuration);
 	try
 	{
 		if (_pipelineElement->IsEmpty())
@@ -126,19 +124,20 @@ std::unique_ptr<PipelineElement> Pipeline::detectFaces(std::unique_ptr<PipelineE
 	{
 		std::cout << e.what() << std::endl;
 	}
-	
 	return _pipelineElement;
 }
 
 std::unique_ptr<PipelineElement> Pipeline::detectPlates(std::unique_ptr<PipelineElement> _pipelineElement)
 {
+	Timer timer(&m_detectPlatesDuration);
 	if (_pipelineElement->IsEmpty())
 		return _pipelineElement;
 	return _pipelineElement;
 	// TODO: here
 }
-std::unique_ptr<PipelineElement> Pipeline::blur(std::unique_ptr<PipelineElement> _pipelineElement) const
+std::unique_ptr<PipelineElement> Pipeline::blur(std::unique_ptr<PipelineElement> _pipelineElement)
 {
+	Timer timer(&m_blurDuration);
 	try
 	{
 		if (_pipelineElement->IsEmpty())
@@ -152,8 +151,9 @@ std::unique_ptr<PipelineElement> Pipeline::blur(std::unique_ptr<PipelineElement>
 
 	return _pipelineElement;
 }
-std::unique_ptr<PipelineElement> Pipeline::saveFrame(std::unique_ptr<PipelineElement> _pipelineElement) const
+std::unique_ptr<PipelineElement> Pipeline::saveFrame(std::unique_ptr<PipelineElement> _pipelineElement)
 {
+	Timer timer(&m_saveFrameDuration);
 	try
 	{
 		if (_pipelineElement->IsEmpty())
@@ -176,11 +176,12 @@ void Pipeline::optForFinishing()
 	}
 }
 
-
-void Pipeline::processPipes(std::vector<std::unique_ptr<PipelineElement>> _elements)
+void Pipeline::processPipes() const
 {
-	for (size_t i=0 ; i<_elements.size()-1 ; i++)
-	{
-		*(_elements.end() - i) = std::move(*(_elements.end() - (i + 1)));
-	}
+	LOG_INFO("Whole pipeline took {} seconds.", m_pipeDuration);
+	LOG_INFO("Grabbing frametook {} seconds.", m_grabFrameDuration);
+	LOG_INFO("Detecting faces took {} seconds.", m_detectFacesDuration);
+	LOG_INFO("Detecting plates took {} seconds.", m_detectPlatesDuration);
+	LOG_INFO("Bluring detections took {} seconds.", m_blurDuration);
+	LOG_INFO("Saving frame took {} seconds.", m_saveFrameDuration);
 }

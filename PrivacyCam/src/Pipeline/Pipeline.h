@@ -3,7 +3,6 @@
 
 #include <PreProcessors.h>
 #include <memory>
-#include <vector>
 
 namespace BS
 {
@@ -24,14 +23,22 @@ namespace pricam
 		std::unique_ptr<FaceAnalyzer> m_faceAnalyzer;
 		bool m_isPipelineStopped;
 
-		std::unique_ptr<PipelineElement> grabFrame(std::unique_ptr<PipelineElement> _pipelineElement) const;
-		std::unique_ptr<PipelineElement> detectFaces(std::unique_ptr<PipelineElement> _pipelineElement) const;
-		std::unique_ptr<PipelineElement> detectPlates(std::unique_ptr<PipelineElement> _pipelineElement);
-		std::unique_ptr<PipelineElement> blur(std::unique_ptr<PipelineElement> _pipelineElement) const;
-		std::unique_ptr<PipelineElement> saveFrame(std::unique_ptr<PipelineElement> _pipelineElement) const;
+		double m_pipeDuration;
+		double m_grabFrameDuration;
+		double m_detectFacesDuration;
+		double m_detectPlatesDuration;
+		double m_blurDuration;
+		double m_saveFrameDuration;
+
+		[[nodiscard]] std::unique_ptr<PipelineElement> grabFrame(std::unique_ptr<PipelineElement> _pipelineElement);
+		[[nodiscard]] std::unique_ptr<PipelineElement> detectFaces(std::unique_ptr<PipelineElement> _pipelineElement);
+		[[nodiscard]] std::unique_ptr<PipelineElement> detectPlates(std::unique_ptr<PipelineElement> _pipelineElement);
+		[[nodiscard]] std::unique_ptr<PipelineElement> blur(std::unique_ptr<PipelineElement> _pipelineElement);
+		[[nodiscard]] std::unique_ptr<PipelineElement> saveFrame(std::unique_ptr<PipelineElement> _pipelineElement);
 
 		void optForFinishing();
-		void processPipes(std::vector<std::unique_ptr<PipelineElement>> _elements);
+		void processPipes() const;
+
 	public:
 		Pipeline(const Pipeline& _other) = delete;
 		Pipeline(Pipeline&& _other) noexcept = delete;

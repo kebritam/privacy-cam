@@ -61,3 +61,6 @@ _deps
 
 # Media files
 *.avi
+
+# Log files
+LprLog*.txt
