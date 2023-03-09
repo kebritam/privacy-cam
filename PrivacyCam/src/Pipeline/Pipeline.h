@@ -4,6 +4,8 @@
 #include <PreProcessors.h>
 #include <memory>
 
+#include "Utility/UniversalTimer.h"
+
 namespace BS
 {
 	class thread_pool;
@@ -18,6 +20,8 @@ namespace pricam
 
 	class Pipeline
 	{
+		UniversalTimer m_universalTiming;
+
 		std::unique_ptr<BS::thread_pool> m_threadPool;
 		std::unique_ptr<ImageGrabber> m_imageGrabber;
 		std::unique_ptr<FaceAnalyzer> m_faceAnalyzer;

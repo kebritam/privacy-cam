@@ -11,7 +11,8 @@
 #include "Setting/Setting.h"
 #include "Utility/ImageUtility.h"
 #include "Utility/Logger.h"
-#include "Utility/Timer.h"
+#include "Utility/ScopedTimer.h"
+#include "Utility/UniversalTimer.h"
 
 using namespace pricam;
 
@@ -38,10 +39,10 @@ void Pipeline::Run()
 	std::unique_ptr<PipelineElement> detectPlateElement = std::make_unique<PipelineElement>();
 	std::unique_ptr<PipelineElement> blurElement = std::make_unique<PipelineElement>();
 	std::unique_ptr<PipelineElement> saveElement = std::make_unique<PipelineElement>();
-	
+
 	while (false == m_isPipelineStopped)
 	{
-		Timer pipeTimer(&m_pipeDuration);
+		ScopedTimer pipeTimer(&m_pipeDuration);
 		std::future<std::unique_ptr<PipelineElement>> generateEmptyElementFuture = m_threadPool->submit(
 			[]()
 			{
@@ -94,7 +95,9 @@ void Pipeline::Run()
 
 std::unique_ptr<PipelineElement> Pipeline::grabFrame(std::unique_ptr<PipelineElement> _pipelineElement)
 {
-	Timer timer(&m_grabFrameDuration);
+	std::string detec("grab");
+	TimerHandle handle = m_universalTiming.StartTimer(detec);
+	ScopedTimer timer(&m_grabFrameDuration);
 	try
 	{
 		const cv::Mat frame = m_imageGrabber->GetNewFrame();
@@ -107,12 +110,15 @@ std::unique_ptr<PipelineElement> Pipeline::grabFrame(std::unique_ptr<PipelineEle
 	{
 		std::cout << e.what() << std::endl;
 	}
+	m_universalTiming.EndTimer(handle);
 	return _pipelineElement;
 }
 
 std::unique_ptr<PipelineElement> Pipeline::detectFaces(std::unique_ptr<PipelineElement> _pipelineElement)
 {
-	Timer timer(&m_detectFacesDuration);
+	std::string detec("detect");
+	TimerHandle handle = m_universalTiming.StartTimer(detec);
+	ScopedTimer timer(&m_detectFacesDuration);
 	try
 	{
 		if (_pipelineElement->IsEmpty())
@@ -124,12 +130,13 @@ std::unique_ptr<PipelineElement> Pipeline::detectFaces(std::unique_ptr<PipelineE
 	{
 		std::cout << e.what() << std::endl;
 	}
+	m_universalTiming.EndTimer(handle);
 	return _pipelineElement;
 }
 
 std::unique_ptr<PipelineElement> Pipeline::detectPlates(std::unique_ptr<PipelineElement> _pipelineElement)
 {
-	Timer timer(&m_detectPlatesDuration);
+	ScopedTimer timer(&m_detectPlatesDuration);
 	if (_pipelineElement->IsEmpty())
 		return _pipelineElement;
 	return _pipelineElement;
@@ -137,7 +144,7 @@ std::unique_ptr<PipelineElement> Pipeline::detectPlates(std::unique_ptr<Pipeline
 }
 std::unique_ptr<PipelineElement> Pipeline::blur(std::unique_ptr<PipelineElement> _pipelineElement)
 {
-	Timer timer(&m_blurDuration);
+	ScopedTimer timer(&m_blurDuration);
 	try
 	{
 		if (_pipelineElement->IsEmpty())
@@ -153,7 +160,7 @@ std::unique_ptr<PipelineElement> Pipeline::blur(std::unique_ptr<PipelineElement>
 }
 std::unique_ptr<PipelineElement> Pipeline::saveFrame(std::unique_ptr<PipelineElement> _pipelineElement)
 {
-	Timer timer(&m_saveFrameDuration);
+	ScopedTimer timer(&m_saveFrameDuration);
 	try
 	{
 		if (_pipelineElement->IsEmpty())
