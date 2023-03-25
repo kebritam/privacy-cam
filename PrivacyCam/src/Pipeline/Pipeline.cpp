@@ -35,7 +35,6 @@ void Pipeline::Run()
 
 	std::unique_ptr<PipelineElement> grabElement = std::make_unique<PipelineElement>();
 	std::unique_ptr<PipelineElement> detectFaceElement = std::make_unique<PipelineElement>();
-	std::unique_ptr<PipelineElement> detectPlateElement = std::make_unique<PipelineElement>();
 	std::unique_ptr<PipelineElement> blurElement = std::make_unique<PipelineElement>();
 	std::unique_ptr<PipelineElement> saveElement = std::make_unique<PipelineElement>();
 	
@@ -60,12 +59,6 @@ void Pipeline::Run()
 				return detectFaces(std::move(detectFaceElement));
 			}
 		);
-		std::future<std::unique_ptr<PipelineElement>> detectPlatesFuture = m_threadPool->submit(
-			[this, &detectPlateElement]()
-			{
-				return detectPlates(std::move(detectPlateElement));
-			}
-		);
 		std::future<std::unique_ptr<PipelineElement>> blurFuture = m_threadPool->submit(
 			[this, &blurElement]()
 			{
@@ -81,8 +74,7 @@ void Pipeline::Run()
 
 		auto tempPipeElement = saveFuture.get();
 		saveElement = blurFuture.get();
-		blurElement = detectPlatesFuture.get();
-		detectPlateElement = detectFacesFuture.get();
+		blurElement = detectFacesFuture.get();
 		detectFaceElement = grabFrameFuture.get();
 		grabElement = generateEmptyElementFuture.get();
 
@@ -105,7 +97,8 @@ std::unique_ptr<PipelineElement> Pipeline::grabFrame(std::unique_ptr<PipelineEle
 	}
 	catch (const std::exception& e)
 	{
-		std::cout << e.what() << std::endl;
+		LOG_ERROR("Exception thrown in grabbing frame. Message: {}", e.what());
+		throw;
 	}
 	return _pipelineElement;
 }
@@ -122,19 +115,12 @@ std::unique_ptr<PipelineElement> Pipeline::detectFaces(std::unique_ptr<PipelineE
 	}
 	catch (const std::exception& e)
 	{
-		std::cout << e.what() << std::endl;
+		LOG_ERROR("Exception thrown in detecting faces. Message: {}", e.what());
+		throw;
 	}
 	return _pipelineElement;
 }
 
-std::unique_ptr<PipelineElement> Pipeline::detectPlates(std::unique_ptr<PipelineElement> _pipelineElement)
-{
-	Timer timer(&m_detectPlatesDuration);
-	if (_pipelineElement->IsEmpty())
-		return _pipelineElement;
-	return _pipelineElement;
-	// TODO: here
-}
 std::unique_ptr<PipelineElement> Pipeline::blur(std::unique_ptr<PipelineElement> _pipelineElement)
 {
 	Timer timer(&m_blurDuration);
@@ -146,7 +132,8 @@ std::unique_ptr<PipelineElement> Pipeline::blur(std::unique_ptr<PipelineElement>
 	}
 	catch (const std::exception& e)
 	{
-		std::cout << e.what() << std::endl;
+		LOG_ERROR("Exception thrown in blurring frame. Message: {}", e.what());
+		throw;
 	}
 
 	return _pipelineElement;
@@ -162,7 +149,8 @@ std::unique_ptr<PipelineElement> Pipeline::saveFrame(std::unique_ptr<PipelineEle
 	}
 	catch (const std::exception& e)
 	{
-		std::cout << e.what() << std::endl;
+		LOG_ERROR("Exception thrown in saving frame. Message: {}", e.what());
+		throw;
 	}
 
 	return _pipelineElement;
@@ -173,13 +161,14 @@ void Pipeline::optForFinishing()
 	if (m_imageGrabber->GetGrabState() == GrabState::ENDED)
 	{
 		m_isPipelineStopped = true;
+		LOG_INFO("Pipeline stopped.");
 	}
 }
 
 void Pipeline::processPipes() const
 {
 	LOG_INFO("Whole pipeline took {} seconds.", m_pipeDuration);
-	LOG_INFO("Grabbing frametook {} seconds.", m_grabFrameDuration);
+	LOG_INFO("Grabbing frame took {} seconds.", m_grabFrameDuration);
 	LOG_INFO("Detecting faces took {} seconds.", m_detectFacesDuration);
 	LOG_INFO("Detecting plates took {} seconds.", m_detectPlatesDuration);
 	LOG_INFO("Bluring detections took {} seconds.", m_blurDuration);
