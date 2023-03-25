@@ -37,48 +37,32 @@ void Pipeline::Run()
 	std::unique_ptr<PipelineElement> detectFaceElement = std::make_unique<PipelineElement>();
 	std::unique_ptr<PipelineElement> blurElement = std::make_unique<PipelineElement>();
 	std::unique_ptr<PipelineElement> saveElement = std::make_unique<PipelineElement>();
-	
-	while (false == m_isPipelineStopped)
-	{
-		Timer pipeTimer(&m_pipeDuration);
-		std::future<std::unique_ptr<PipelineElement>> generateEmptyElementFuture = m_threadPool->submit(
-			[]()
-			{
-				return std::make_unique<PipelineElement>();
-			}
-		);
-		std::future<std::unique_ptr<PipelineElement>> grabFrameFuture = m_threadPool->submit(
-			[this, &grabElement]()
-			{
-				return grabFrame(std::move(grabElement));
-			}
-		);
-		std::future<std::unique_ptr<PipelineElement>> detectFacesFuture = m_threadPool->submit(
-			[this, &detectFaceElement]()
-			{
-				return detectFaces(std::move(detectFaceElement));
-			}
-		);
-		std::future<std::unique_ptr<PipelineElement>> blurFuture = m_threadPool->submit(
-			[this, &blurElement]()
-			{
-				return blur(std::move(blurElement));
-			}
-		);
-		std::future<std::unique_ptr<PipelineElement>> saveFuture = m_threadPool->submit(
-			[this, &saveElement]()
-			{
-				return saveFrame(std::move(saveElement));
-			}
-		);
 
-		auto tempPipeElement = saveFuture.get();
+	while (!m_isPipelineStopped) {
+		Timer pipeTimer(&m_pipeDuration);
+
+		std::future<std::unique_ptr<PipelineElement>> generateEmptyElementFuture =
+			m_threadPool->submit([]() { return std::make_unique<PipelineElement>(); });
+
+		std::future<std::unique_ptr<PipelineElement>> grabFrameFuture =
+			m_threadPool->submit([this, &grabElement]() { return grabFrame(std::move(grabElement)); });
+
+		std::future<std::unique_ptr<PipelineElement>> detectFacesFuture =
+			m_threadPool->submit([this, &detectFaceElement]() { return detectFaces(std::move(detectFaceElement)); });
+
+		std::future<std::unique_ptr<PipelineElement>> blurFuture =
+			m_threadPool->submit([this, &blurElement]() { return blur(std::move(blurElement)); });
+
+		std::future<std::unique_ptr<PipelineElement>> saveFuture =
+			m_threadPool->submit([this, &saveElement]() { return saveFrame(std::move(saveElement)); });
+
 		saveElement = blurFuture.get();
 		blurElement = detectFacesFuture.get();
 		detectFaceElement = grabFrameFuture.get();
 		grabElement = generateEmptyElementFuture.get();
 
 		pipeTimer.EndTimer();
+
 		processPipes();
 		optForFinishing();
 	}

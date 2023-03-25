@@ -32,7 +32,6 @@ namespace pricam
 
 		[[nodiscard]] std::unique_ptr<PipelineElement> grabFrame(std::unique_ptr<PipelineElement> _pipelineElement);
 		[[nodiscard]] std::unique_ptr<PipelineElement> detectFaces(std::unique_ptr<PipelineElement> _pipelineElement);
-		[[nodiscard]] std::unique_ptr<PipelineElement> detectPlates(std::unique_ptr<PipelineElement> _pipelineElement);
 		[[nodiscard]] std::unique_ptr<PipelineElement> blur(std::unique_ptr<PipelineElement> _pipelineElement);
 		[[nodiscard]] std::unique_ptr<PipelineElement> saveFrame(std::unique_ptr<PipelineElement> _pipelineElement);
 
