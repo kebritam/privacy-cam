@@ -3,21 +3,15 @@
 #include <fstream>
 #include <filesystem>
 
-#include "nlohmann/json.hpp"
+#include <nlohmann/json.hpp>
 
 using namespace pricam;
 using json = nlohmann::json;
 namespace fs = std::filesystem;
 
-Setting::Setting() :
-	Setting("config.json")
+Setting::Setting()
 {
-}
-
-Setting::Setting(const std::string& _settingFileName)
-{
-	fs::path currentPath = fs::current_path();
-	currentPath.append(_settingFileName);
+	const fs::path currentPath = fs::current_path().append("config.json");
 
 	std::ifstream configFile(currentPath);
 	if (configFile.fail())
@@ -25,15 +19,11 @@ Setting::Setting(const std::string& _settingFileName)
 
 	json jsonSetting = json::parse(configFile);
 
-	Video.InputVideoLocation = jsonSetting["VideoSetting"].value("InputVideoLocation", "");
-	Video.OutputVideoLocation = jsonSetting["VideoSetting"].value("OutputVideoLocation", "");
-	Blur.BlurFace = jsonSetting["BlurSetting"].value("BlurFace", false);
-	Blur.BlurPlate = jsonSetting["BlurSetting"].value("BlurPlate", false);
+	Video.InputVideoPath = jsonSetting["VideoSetting"].value("InputVideoPath", "");
+	Video.OutputVideoPath = jsonSetting["VideoSetting"].value("OutputVideoPath", "");
 
-	if ("Video" == jsonSetting.value("StreamType", "Video"))
+	if ("Video" == jsonSetting.value("StreamType", ""))
 		Stream = StreamType::VIDEO;
 	else
 		Stream = StreamType::NONE;
-
-	ThreadPoolSize = jsonSetting.value("ThreadPoolSize", 4);
 }

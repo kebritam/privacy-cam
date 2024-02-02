@@ -2,9 +2,11 @@
 #define PRICAM_LOGGING_BASE_H
 
 #include <string>
-#include <PreProcessors.h>
 #include <memory>
+
 #include <spdlog/logger.h>
+
+#include "PreProcessors.h"
 
 namespace pricam
 {

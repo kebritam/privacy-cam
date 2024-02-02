@@ -1,9 +1,7 @@
 ﻿#include <iostream>
+
 #include "Setting/Setting.h"
 #include "Pipeline/Pipeline.h"
-
-#include <opencv2/core/types.hpp>
-#include <opencv2/opencv.hpp>
 
 int main()
 {

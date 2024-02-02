@@ -1,8 +1,9 @@
 #ifndef PRIVACYCAM_IMAGE_UTILITY_H
 #define PRIVACYCAM_IMAGE_UTILITY_H
 
-#include <PreProcessors.h>
 #include <vector>
+
+#include "PreProcessors.h"
 
 namespace cv
 {

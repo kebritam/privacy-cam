@@ -63,4 +63,4 @@ _deps
 *.avi
 
 # Log files
-LprLog*.txt
+PricamLog*.txt

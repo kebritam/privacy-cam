@@ -2,9 +2,9 @@
 #define PRIVACYCAM_IMAGE_GRABBER_VIDEO_H
 
 #include <memory>
-#include <PreProcessors.h>
 #include <string>
 
+#include "PreProcessors.h"
 #include "ImageGrabber.h"
 
 namespace cv
@@ -29,6 +29,8 @@ namespace pricam
 		std::string m_videoFilePath;
 		double m_frameRate;
 		Size m_frameSize;
+		uint32_t m_videoFrameCount;
+		uint32_t m_grabbedFrameCount;
 		std::unique_ptr<cv::VideoCapture> m_videoCapture;
 		std::unique_ptr<cv::VideoWriter> m_videoWriter;
 	public:

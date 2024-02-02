@@ -41,7 +41,7 @@ void Logger::initLogging()
 		sinks.push_back(stdoutSink);
 	}
 
-	const auto rotatingSink = std::make_shared<spdlog::sinks::rotating_file_sink_mt>(logFilesDirectory + PathSeparator + "LprLog.txt", maxSize, maxFiles);
+	const auto rotatingSink = std::make_shared<spdlog::sinks::rotating_file_sink_mt>(logFilesDirectory + PathSeparator + "PricamLog.txt", maxSize, maxFiles);
 	sinks.push_back(rotatingSink);
 	m_logger = std::make_shared<spdlog::async_logger>("pricam", sinks.begin(), sinks.end(), spdlog::thread_pool(), spdlog::async_overflow_policy::block);
 

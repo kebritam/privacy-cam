@@ -1,7 +1,7 @@
 #ifndef PRIVACYCAM_IMAGE_GRABBER_H
 #define PRIVACYCAM_IMAGE_GRABBER_H
 
-#include <PreProcessors.h>
+#include "PreProcessors.h"
 
 namespace cv
 {

@@ -1,7 +1,7 @@
 #include "ImageUtility.h"
 
-#include "opencv2/opencv.hpp"
-#include "opencv2/core/types.hpp"
+#include <opencv2/opencv.hpp>
+#include <opencv2/core/types.hpp>
 
 using namespace pricam;
 

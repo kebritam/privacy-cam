@@ -1,10 +1,9 @@
 #include "Pipeline.h"
 
-#include "Analyzer/FaceAnalyzer.h"
-#include "opencv2/opencv.hpp" // TODO: do not expose opencv to pipeline
+#include <opencv2/opencv.hpp> // TODO: do not expose opencv to pipeline
 
 #include "Utility/ThreadPool.h"
-
+#include "Analyzer/FaceAnalyzer.h"
 #include "Pipeline/PipelineElement.h"
 #include "ImageGrabber/ImageGrabber.h"
 #include "ImageGrabber/ImageGrabberVideo.h"
@@ -15,11 +14,10 @@
 
 using namespace pricam;
 
-Pipeline::Pipeline(const Setting& _setting) :
-	m_threadPool(std::make_unique<BS::thread_pool>(_setting.ThreadPoolSize)),
-	m_faceAnalyzer(std::make_unique<FaceAnalyzer>()),
-	m_isPipelineStopped(true),
-	m_pipeDuration(0), m_grabFrameDuration(0), m_detectFacesDuration(0), m_detectPlatesDuration(0), m_blurDuration(0), m_saveFrameDuration(0)
+Pipeline::Pipeline(const Setting& _setting)
+	: m_threadPool(std::make_unique<BS::thread_pool>(8))
+	, m_faceAnalyzer(std::make_unique<FaceAnalyzer>())
+	, m_isPipelineStopped(true)
 {
 	if (StreamType::VIDEO == _setting.Stream)
 		m_imageGrabber = std::make_unique<ImageGrabberVideo>(_setting.Video);
@@ -92,7 +90,7 @@ std::unique_ptr<PipelineElement> Pipeline::detectFaces(std::unique_ptr<PipelineE
 	Timer timer(&m_detectFacesDuration);
 	try
 	{
-		if (_pipelineElement->IsEmpty())
+		if (!_pipelineElement || _pipelineElement->IsEmpty())
 			return _pipelineElement;
 		const std::vector<Rect> rects = m_faceAnalyzer->FindRects(_pipelineElement->GetFrame());
 		_pipelineElement->FillRects(rects);
@@ -110,7 +108,7 @@ std::unique_ptr<PipelineElement> Pipeline::blur(std::unique_ptr<PipelineElement>
 	Timer timer(&m_blurDuration);
 	try
 	{
-		if (_pipelineElement->IsEmpty())
+		if (!_pipelineElement || _pipelineElement->IsEmpty())
 			return _pipelineElement;
 		ImageUtility::BlurRects(_pipelineElement->GetFrame(), _pipelineElement->GetRects());
 	}
@@ -127,7 +125,7 @@ std::unique_ptr<PipelineElement> Pipeline::saveFrame(std::unique_ptr<PipelineEle
 	Timer timer(&m_saveFrameDuration);
 	try
 	{
-		if (_pipelineElement->IsEmpty())
+		if (!_pipelineElement || _pipelineElement->IsEmpty())
 			return _pipelineElement;
 		m_imageGrabber->SaveFrame(_pipelineElement->GetFrame());
 	}

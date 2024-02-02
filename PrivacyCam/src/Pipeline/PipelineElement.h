@@ -2,8 +2,9 @@
 #define PRIVACYCAM_PIPELINE_ELEMENT_H
 
 #include <memory>
-#include <PreProcessors.h>
 #include <vector>
+
+#include "PreProcessors.h"
 
 namespace cv
 {

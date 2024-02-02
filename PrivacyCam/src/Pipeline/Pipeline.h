@@ -1,8 +1,9 @@
 #ifndef PRIVACYCAM_PIPELINE_H
 #define PRIVACYCAM_PIPELINE_H
 
-#include <PreProcessors.h>
 #include <memory>
+
+#include "PreProcessors.h"
 
 namespace BS
 {
@@ -23,12 +24,12 @@ namespace pricam
 		std::unique_ptr<FaceAnalyzer> m_faceAnalyzer;
 		bool m_isPipelineStopped;
 
-		double m_pipeDuration;
-		double m_grabFrameDuration;
-		double m_detectFacesDuration;
-		double m_detectPlatesDuration;
-		double m_blurDuration;
-		double m_saveFrameDuration;
+		double m_pipeDuration = 0.;
+		double m_grabFrameDuration = 0.;
+		double m_detectFacesDuration = 0.;
+		double m_detectPlatesDuration = 0.;
+		double m_blurDuration = 0.;
+		double m_saveFrameDuration = 0.;
 
 		[[nodiscard]] std::unique_ptr<PipelineElement> grabFrame(std::unique_ptr<PipelineElement> _pipelineElement);
 		[[nodiscard]] std::unique_ptr<PipelineElement> detectFaces(std::unique_ptr<PipelineElement> _pipelineElement);
